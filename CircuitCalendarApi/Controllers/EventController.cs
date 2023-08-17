@@ -21,84 +21,91 @@ namespace CircuitCalendarApi.Controllers
             _db = db;
         }
 
-        // Get Events
+        // Get api/calendarEvents
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CalendarEvent>>> GetCalendarEvents()
+        public async Task<List<CalendarEvent>> Get(string name, string description)
         {
-            return await _db.CalendarEvents.ToListAsync();
+            IQueryable<CalendarEvent> query = _db.CalendarEvents.AsQueryable();
+            if (name != null)
+            {
+                query = query.Where(entry => entry.Name.Contains(name));
+            }
+            if (description != null)
+            {
+                query = query.Where(entry => entry.Description.Contains(description));
+            }
+            return await query.ToListAsync();
         }
 
-        // [HttpGet("{id}")]
-        // public async Task<ActionResult<CalendarEvent>> GetCalendarEvent(int id)
-        // {
-        //     var event = await _db.CalendarEvents.FindAsync(id);
+        //Get: api/CalendarEvents/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CalendarEvent>> GetCalendarEvent(int id)
+        {
+            CalendarEvent calendarEvent = await _db.CalendarEvents.FindAsync(id);
+            if (calendarEvent == null)
+            {
+                return NotFound();
+            }
+            return calendarEvent;
+        }
 
-        //     if (event == null)
-        //         return NotFound();
+        //Post api/CalendarEvents
+        [HttpPost]
+        public async Task<ActionResult<CalendarEvent>> Post(CalendarEvent calendarEvent)
+        {
+            _db.CalendarEvents.Add(calendarEvent);
+            await _db.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetCalendarEvent), new { id = calendarEvent.CalendarEventId }, calendarEvent);
+        }
 
-        //     return event;
-        // }
+        //Put: api/CalendarEvents/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, CalendarEvent calendarEvent)
+        {
+            if (id != calendarEvent.CalendarEventId)
+            {
+                return BadRequest();
+            }
+            _db.CalendarEvents.Update(calendarEvent);
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CalendarEventExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return NoContent();
+        }
+        private bool CalendarEventExists(int id)
+        {
+            return _db.CalendarEvents.Any(e => e.CalendarEventId == id);
+        }
+
+        //DELETE: api/calendarevents/1
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCalendarEvent(int id)
+        {
+            CalendarEvent calendarEvent = await _db.CalendarEvents.FindAsync(id);
+            if (calendarEvent == null)
+            {
+                return NotFound();
+            }
+
+            _db.CalendarEvents.Remove(calendarEvent);
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
+
 }
 
-//         //Post
-//         [HttpPost]
-//         public async Task<ActionResult<Event>> Post(Event event)
-//         {
-//             _db.Events.Add(event);
-//         await _db.SaveChangesAsync();
-//             return CreatedAtAction(nameof(GetEvent), new { id = event.EventId }, event);
-//         }
 
-//         //Put
-//         [HttpPut("{id}")]
-//         public async Task<IActionResult> Put(int id, Event event)
-//         {
-//             if (id != event.EventId)
-//             {
-//             return BadRequest();
-//         }
-
-//         _db.Events.Update(event);
-
-//             try
-//             {
-//             await _db.SaveChangesAsync();
-//         }
-//             catch (DbUpdateConcurrencyException)
-//             {
-//                 if (!EventExists(id))
-//                 {
-//                     return NotFound();
-//     }
-//                 else
-//                 {
-//                     throw;
-//                 }
-//             }
-//             return NoContent();
-//         }
-
-//         private bool EventExists(int id)
-// {
-//     return _db.Events.Any(e => e.EventId == id);
-// }
-
-// // DELETE
-// [HttpDelete("{id}")]
-// public async Task<IActionResult> DeleteEvent(int id)
-// {
-//     Event event = await _db.Events.FindAsync(id);
-//     if (event == null)
-//             {
-//     return NotFound();
-// }
-
-// _db.Events.Remove(event);
-// await _db.SaveChangesAsync();
-
-// return NoContent();
-//         }
-
-//     }
-// }
