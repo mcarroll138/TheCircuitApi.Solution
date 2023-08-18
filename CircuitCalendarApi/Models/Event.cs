@@ -1,9 +1,15 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CircuitCalendarApi.Models
 {
   public class CalendarEvent
   {
     public int CalendarEventId { get; set; }
+    [Required]
+    [StringLength(40)]
     public string Name { get; set; }
+    [Required]
+    [StringLength(5000)]
     public string Description { get; set; }
   }
 }
