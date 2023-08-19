@@ -23,19 +23,32 @@ namespace CircuitCalendarApi.Controllers
 
         // Get api/calendarEvents
         [HttpGet]
-        public async Task<List<CalendarEvent>> Get(string name, string description)
+        public async Task<List<CalendarEvent>> Get(string searchTerm)
         {
             IQueryable<CalendarEvent> query = _db.CalendarEvents.AsQueryable();
-            if (name != null)
+
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(entry => entry.Name.Contains(name));
+                query = query.Where(entry => entry.Name.Contains(searchTerm) || entry.Description.Contains(searchTerm));
             }
-            if (description != null)
-            {
-                query = query.Where(entry => entry.Description.Contains(description));
-            }
+
             return await query.ToListAsync();
         }
+
+        // [HttpGet]
+        // public async Task<List<CalendarEvent>> Get(string name, string description)
+        // {
+        //     IQueryable<CalendarEvent> query = _db.CalendarEvents.AsQueryable();
+        //     if (name != null)
+        //     {
+        //         query = query.Where(entry => entry.Name.Contains(name));
+        //     }
+        //     if (description != null)
+        //     {
+        //         query = query.Where(entry => entry.Description.Contains(description));
+        //     }
+        //     return await query.ToListAsync();
+        // }
 
         //Get: api/CalendarEvents/5
         [HttpGet("{id}")]
